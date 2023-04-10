@@ -1,0 +1,424 @@
+definitions:
+  structure.CookingSteps:
+    properties:
+      cookingTimeInMinutes:
+        type: integer
+      description:
+        type: string
+      imgPath:
+        type: string
+      step:
+        type: integer
+    type: object
+  structure.CreateRecipeRequest:
+    properties:
+      cookingSteps:
+        items:
+          $ref: '#/definitions/structure.CookingSteps'
+        type: array
+      description:
+        type: string
+      imgPath:
+        type: string
+      ingredients:
+        items:
+          $ref: '#/definitions/structure.Ingredients'
+        type: array
+      name:
+        type: string
+    required:
+    - cookingSteps
+    - description
+    - imgPath
+    - ingredients
+    - name
+    type: object
+  structure.Ingredients:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  structure.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  structure.RateRecipe:
+    properties:
+      rate:
+        type: integer
+    required:
+    - rate
+    type: object
+  structure.Recipe:
+    properties:
+      avgRating:
+        type: number
+      cookingSteps:
+        items:
+          $ref: '#/definitions/structure.CookingSteps'
+        type: array
+      description:
+        type: string
+      id:
+        type: integer
+      imgPath:
+        type: string
+      ingredients:
+        items:
+          $ref: '#/definitions/structure.Ingredients'
+        type: array
+      name:
+        type: string
+    type: object
+  structure.RecipeFilters:
+    properties:
+      ingredientsIds:
+        items:
+          type: integer
+        type: array
+      totalCookingTime:
+        type: integer
+      totalCookingTimeSortDirection:
+        type: string
+    type: object
+  structure.RegisterRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  structures.FileUploadResponse:
+    properties:
+      absPath:
+        type: string
+    type: object
+  structures.LoginResponce:
+    properties:
+      token:
+        type: string
+    type: object
+  structures.SuccessCreateResponse:
+    properties:
+      id:
+        type: integer
+      success:
+        type: boolean
+    type: object
+  structures.SuccessRecipeRateResponse:
+    properties:
+      avgRecipeRate:
+        type: number
+      success:
+        type: boolean
+    type: object
+  structures.SuccessResponse:
+    properties:
+      success:
+        type: boolean
+    type: object
+info:
+  contact: {}
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Get JWTtoken for authorization header
+      operationId: login
+      parameters:
+      - description: Credentials
+        in: body
+        name: Credentials
+        required: true
+        schema:
+          $ref: '#/definitions/structure.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structures.LoginResponce'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Login
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create user
+      operationId: register
+      parameters:
+      - description: Credentials
+        in: body
+        name: Credentials
+        required: true
+        schema:
+          $ref: '#/definitions/structure.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structures.SuccessResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Register a user
+      tags:
+      - auth
+  /file/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload File and get file path
+      operationId: upload
+      parameters:
+      - description: file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structures.FileUploadResponse'
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: Upload File
+      tags:
+      - File Management
+  /recipes:
+    get:
+      consumes:
+      - application/json
+      description: Get recipes list
+      parameters:
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      - description: offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/structure.Recipe'
+            type: array
+        "500":
+          description: Internal Server Error
+      summary: Get Recipes
+      tags:
+      - recipes
+    post:
+      consumes:
+      - application/json
+      description: Create recipe. Do not set ingredient ID to create a new ingredient
+        (Leave as 0 or remove it).
+      parameters:
+      - description: Body
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/structure.CreateRecipeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structures.SuccessCreateResponse'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: Create recipe
+      tags:
+      - recipes
+  /recipes/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete recipe
+      parameters:
+      - description: recipe id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structures.SuccessResponse'
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: Delete recipe
+      tags:
+      - recipes
+    get:
+      consumes:
+      - application/json
+      description: Get recipe by id
+      parameters:
+      - description: recipe id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structure.Recipe'
+        "500":
+          description: Internal Server Error
+      summary: Get recipe
+      tags:
+      - recipes
+    put:
+      consumes:
+      - application/json
+      description: Update recipe
+      parameters:
+      - description: Body
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/structure.CreateRecipeRequest'
+      - description: recipe id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structures.SuccessResponse'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: Update recipe
+      tags:
+      - recipes
+  /recipes/filter:
+    post:
+      consumes:
+      - application/json
+      description: Get filtered recipes list. Leave empty if filter is not needed
+      parameters:
+      - description: Body
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/structure.RecipeFilters'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/structure.Recipe'
+            type: array
+        "500":
+          description: Internal Server Error
+      summary: Get Filtered Recipes
+      tags:
+      - recipes
+  /recipes/rate/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Put a rating to recipe
+      parameters:
+      - description: recipe id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: recipe rate
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/structure.RateRecipe'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structures.SuccessRecipeRateResponse'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: Rate recipe
+      tags:
+      - recipes
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

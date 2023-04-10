@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+  app:
+    build:
+      dockerfile: docker/app.dockerfile
+      context: .
+      target: dev
+    volumes:
+      - .:/opt/app/api
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+  postgres:
+    image: postgres:11
+    volumes:
+      - bcraft_postgres_database:/var/lib/postgresql/data:Z
+      - ./db/schema/init_up.sql:/docker-entrypoint-initdb.d/init_up.sql
+    environment:
+      - "POSTGRES_USER=${POSTGRES_USER}"
+      - "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}"
+      - "POSTGRES_DB=${POSTGRES_DB}"
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    tty: true
+volumes:
+  bcraft_postgres_database:
